@@ -79,20 +79,28 @@ void AnimalLLnode::print(unsigned int& ignoreCount, unsigned int& displayCount, 
     
     // TODO
     //recursively 
-    if (next == nullptr && containAnyWords(animal->getSpecies(),filter.speciesFilter)){
-        animal->display(ignoreCount,displayCount);
+    if (next == nullptr){
+        // if (containAnyWords(animal->getSpecies(),filter.speciesFilter)&& containAnyWords(animal->getHealthCondition().description,filter.healthFilter))
+        //     animal->display(ignoreCount,displayCount);
+        if (filter.match(*animal)){
+            // cout << filter.healthFilter;
+            animal->display(ignoreCount,displayCount);
+        }
+        
     } 
     else {
         //if not end, print next one, then this one
+        // if (next){
         //print next one
-        if (next){
-            if (containAnyWords(next->animal->getSpecies(),filter.speciesFilter)){
-                next->print(ignoreCount,displayCount,filter);
-            }
-            if (containAnyWords(animal->getSpecies(),filter.speciesFilter)){
+            next->print(ignoreCount,displayCount,filter);
+            // if ((containAnyWords(animal->getSpecies(),filter.speciesFilter) && containAnyWords(animal->getHealthCondition().description,filter.healthFilter))){
+            //     animal->display(ignoreCount,displayCount);
+            // }
+            if (filter.match(*animal)){
+                // cout << filter.healthFilter;
                 animal->display(ignoreCount,displayCount);
             }
-        }
+        // }
 
     }
 
@@ -121,32 +129,9 @@ BSTnode::~BSTnode()  {
 void BSTnode::addAnimal(const Animal* a) {
     
     // TODO
-    // AnimalLLnode* curr = head;
-    // AnimalLLnode* prev;
-    // if (head != nullptr){
-    //     for (; curr; curr=curr->next){
-    //         //if the ID being added is the largest yet, ie: replaces the head
-    //         if (curr->animal->getID() == a->getID()){
-    //             return;
-    //         }
-    //         else if (head->animal->getID() < a->getID()){
-    //             curr = new AnimalLLnode(a,head);
-    //             head = curr;
-    //             return;
-    //         }
-    //         //somewhere in the middle
-    //         else if (prev->animal->getID() > a->getID() && curr->animal->getID() < a->getID()){
-    //             prev->next = new AnimalLLnode(a,curr);
-    //             return;
-    //         } 
-    //         //the end
-    //         else if (curr->next == nullptr && curr->animal->getID() > a->getID()){
-    //             curr->next = new AnimalLLnode(a);
-    //             return;
-    //         }
-    //         prev = curr;
-    //     }
-    // }
+    if (!a){
+        return;
+    }
     AnimalLLnode* newNode = new AnimalLLnode(a);  // Create a new node
 
     if (head == nullptr || head->animal->getID() < a->getID()) {
@@ -190,7 +175,9 @@ void BSTnode::removeAnimal(const Animal* a) {
     if (head != nullptr){
         //if at head, should also handle case with only 1 element
         if (head->animal->getID() == a->getID()){
+            AnimalLLnode* curr = head;
             head = head->next;
+            delete curr;
             return;
         }
         AnimalLLnode* curr = head;
@@ -206,7 +193,7 @@ void BSTnode::removeAnimal(const Animal* a) {
         }
 
         prev->next = curr->next;
-
+        delete curr;
     }
 
 }
@@ -248,7 +235,7 @@ void BST::insert(const Animal* a)
     // TODO
     //comparator returns -1 if a1 < a2, 0 if a1 == a2, and 1 if a1 > a2
     if (isEmpty()){
-        root = new BSTnode{a,nullptr};
+        root = new BSTnode{a,comparator};
     }
     else if (comparator(a,root->head->animal) < 0){
         root->left.insert(a);
@@ -297,41 +284,40 @@ void BST::remove(const Animal* a)
                 if (root->left.root && root->right.root){
                     //has 2 children
                      //find minimum node from right subtree
-                    BSTnode*& minNode = root->right.findMinNode();
-                    BSTnode* temp = minNode;
+                    BSTnode*& rightMinNode = root->right.findMinNode();
+                    //create temp variable to minnode
+                    BSTnode* temp = rightMinNode;
                     // BSTnode* temp = root;
-                    //assign the min node to root
-                    minNode = minNode->right.root;
+                    //move linked list to root
                     root->head = temp->head;
+                    //set to nullptr so linked list doesn't get deleted
                     temp->head = nullptr;
+                    rightMinNode = rightMinNode->right.root;
+                    //reassign 
                     temp->right.root = nullptr;
                     //remove minnode
                     delete temp;
-
+                    return;
                 } 
                 else {
                     //has 0 or 1 child
                     if (root->left.root){
                         //if left root exists -> implied right root doesn't exist
                         //create temp object
-                        BSTnode* temp = root;
-                        //reassign root to point to left side
-                        root = root->left.root;
-                        //make left side not exist so it isn't all deallocated
-                        temp->left.root = nullptr;
-                        delete temp;
-                    } 
-                    else if (root->right.root){
-                        //if right root exists
-                        BSTnode* temp = root;
-                        root = root->right.root;
-                        temp->right.root = nullptr;
-                        delete temp;
-                    } 
-                    else {
-                        //0 children
+                        BSTnode* temp = root->left.root;
+                        root->left.root = nullptr;
                         delete root;
-                    }
+                        root = temp;
+                        return;
+                    } 
+                    else{
+                        //if right root exists
+                        BSTnode* temp = root->right.root;
+                        root->right.root = nullptr;
+                        delete root;
+                        root = temp;
+                        return;
+                    } 
                 }
             }
         }
@@ -371,9 +357,11 @@ void BST::print(unsigned int& ignoreCount, unsigned int& displayCount, const Fil
     //         root->right.print(ignoreCount,displayCount,filter);
     //     }
     // }
-    if (root->head){
-            root->left.print(ignoreCount,displayCount,filter);
-            root->head->print(ignoreCount,displayCount,filter);
-            root->right.print(ignoreCount,displayCount,filter);
+    if (root && root->head){
+
+        root->left.print(ignoreCount,displayCount,filter);
+        // cout << "print1" << endl;
+        root->head->print(ignoreCount,displayCount,filter);
+        root->right.print(ignoreCount,displayCount,filter);
     }
 }

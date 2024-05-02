@@ -302,10 +302,13 @@ void test20() {
     for (int i=0; i<NUM_ANIMALS; ++i)
         animals[i] = createRandomAnimal();
     BSTnode bstNode {animals[0], dummyAnimalComparator};
+    // cout << "gay1" <<endl;
     for (int i=1; i<NUM_ANIMALS; ++i)
         bstNode.addAnimal(animals[i]);
+    // cout << "gay2" <<endl;
     for (int i=0; i<NUM_ANIMALS; ++i)
         bstNode.removeAnimal(animals[i]);
+    // cout << "gay3" <<endl;
 
     cout << "Empty BSTnode's head is nullptr: " << (bstNode.head == nullptr) << endl;
 
@@ -555,6 +558,7 @@ void test31() {
     }
     unsigned int ignoreCount = 0;
     unsigned int displayCount = 20;
+    // cout << "ga1" <<endl;
     bst.print(ignoreCount, displayCount, makeFilter("", "", {}));
     for (unsigned int i=0; i<NUM_ANIMALS; ++i)
         delete animals[i];

@@ -123,7 +123,7 @@ bool AdoptionCenter::removeAnimal(unsigned int id) {
     if (exists){
         Animal** temp = new Animal*[numAnimals-1];
         for (int i = 0, k = 0; i < numAnimals - 1; ++i){
-            if (i == index){
+            if (i >= index){
                 //if at position to delete
                 // increment other variable, then continue on 
                 ++k;
@@ -174,6 +174,7 @@ void AdoptionCenter::setAnimalHealthCondition(unsigned int id, const HealthCondi
     // TODO
     bool exists = false;
     unsigned int index = 0;
+    //find if the index exists
     for (; index < numAnimals; ++index){
         if (animals[index]->getID() == id){
             exists = true;
